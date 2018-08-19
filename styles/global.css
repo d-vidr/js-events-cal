@@ -1,0 +1,34 @@
+/* Global styles */
+
+html {
+	/* Taken from DO stylesheet */
+	font: 400 16px/1.5 Sailec-Regular,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+	background: #fff;
+	color: rgba(3,27,78,.7);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	box-sizing: border-box;
+}
+
+.page-container {
+	max-width: 1200px;
+}
+
+.events-heading {
+	color: blue;
+}
+
+.calendar {
+}
+
+.calendar__day {
+	max-width: 25%;
+}
+
+.calendar__hour {
+	border: 1px solid #000;
+	height: 40px;
+}
