@@ -17,7 +17,8 @@ var renderEvents = function(eventsArray) {
   var hourInPixels = 60;
   var minuteInPixels = hourInPixels/60;
   var dayWidthInPixels = 100;
-  var eventsOccuringNow = 0;
+  var endTimes = [];
+  var eventWidth = 100;
   
   var calEventHeight = function(calEvent) {
     return calEvent.duration * minuteInPixels;
@@ -43,10 +44,35 @@ var renderEvents = function(eventsArray) {
   }
 
   var renderEvent = function(calEvent) {
-    // Check start time against previous end times
+    // Check existing end times against current start time and flush events that are over
+    console.log(calEvent);
+    console.log(endTimes);
+    if (endTimes.length > 0) {
+      endTimes.forEach(function(endTime) {
+        if (calEvent.starts_at > endTime) {
+          console.log('remove ' + endTime);
+          var indexToRemove = endTimes.indexOf(endTime);
+          // endTimes.splice(indexToRemove, 1);
+        }
+      })
+    }
 
+    // If end times still exist, an event is still occurring
+    if (endTimes.length > 0) {
+      // There is an overlapping event
+      eventWidth = 100 / endTimes.length;
+      // console.log(calEvent);
+      // console.log('will overlap');
+    }
+    // console.log(endTimes);
+    // Push current end time to check against next event
+    endTimes.push(calEvent.starts_at + calEvent.duration);
+    
   }
-  eventsArray.forEach(function(calEvent) {
+
+  // Sort events, then render them
+  sortedEvents = sortEvents();
+  sortedEvents.forEach(function(calEvent) {
     // Ensure each event has required properties
     if (!calEvent.starts_at || !calEvent.duration) {
       console.log('Event does not have `starts_at` or `duration`, both of which are required to render');
