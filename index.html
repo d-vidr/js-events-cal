@@ -4,7 +4,6 @@
 		<meta charset="UTF-8">
 		<title>Events Calendar</title>
 		<link rel="stylesheet" type="text/css" href="styles/global.css">
-		<script src="scripts/renderEvents.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div class="page-container">
@@ -18,22 +17,9 @@
 				&nbsp;&nbsp;{starts_at: 420, duration: 120}<br />
 				]
 			</code></p>
-			<div class="calendar">
-				<div class="calendar__day">
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-					<div class="calendar__hour"></div>
-				</div>
+			<div id="calendar">
 			</div>
 		</div>
+		<script src="scripts/renderEvents.js" type="text/javascript"></script>
 	</body>
 </html>
