@@ -200,17 +200,13 @@ var calendarEvents = {
    * Render all markup.
    */
   renderMarkup: function() {
-    const getSingleEvent = this.getSingleEvent;
-    const appendToCal = this.appendToCal;
-
     // First render calendar markup - container, hour divs
     this.renderCalHourBlocks();
-
     // Then, render events.
     this.sortedCalEvents.forEach(function(calEvent) {
-      const singleEvent = getSingleEvent(calEvent);
-      appendToCal(singleEvent);
-    })
+      const singleEvent = this.getSingleEvent(calEvent);
+      this.appendToCal(singleEvent);
+    }, this);
   },
 
   // Render calendar and events.
