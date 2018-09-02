@@ -56,8 +56,21 @@ var calendarEvents = {
     return true;
   },
 
-  calculatedStartTime: function(startTime) {
+  calcStartTimePos: function(startTime) {
     return this.hourInPixels / 60 * startTime;
+  },
+
+  calcTime: function(timeFromStart) {
+    const hours = this.startTime + (timeFromStart / 60);
+    let rhours = Math.floor(hours);
+    let minutes = 60 * (hours - rhours);
+    let label = 'AM';
+    if ( 12 < rhours ) {
+      rhours = rhours - 12;
+      label = 'PM';
+    }
+    minutes = ( 0 !== minutes ) ? minutes : '00';
+    return `${rhours}:${minutes} ${label}`;
   },
 
   /******************** DATA METHODS ********************/
@@ -158,7 +171,7 @@ var calendarEvents = {
     const eventEl = this.createCalElement('div', this.domClasses['event']);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
     eventEl.style.height = `${calEvent.duration}px`;
-    eventEl.style.top = `${this.calculatedStartTime(calEvent.starts_at)}px`;
+    eventEl.style.top = `${this.calcStartTimePos(calEvent.starts_at)}px`;
 
     // Add title, location if exist
     if ( 'undefined' !== typeof calEvent.title && calEvent.title.length > 0) {
@@ -167,6 +180,7 @@ var calendarEvents = {
     if ( 'undefined' !== typeof calEvent.location && calEvent.location.length > 0) {
       eventEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
     }
+    console.log(this.calcTime(calEvent.starts_at));
     return eventEl;
   },
 
