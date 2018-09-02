@@ -1,23 +1,4 @@
 'use strict';
-/*
- Assumptions:
-
- */
-
-/*
-  Final testing:
-  - Run html validator
-  - Remove console.logs
-*/
-
-/*
-  - Nicer to create properties with html templates for easy maintenance
-
-
-  To do:
-  - set height of event with duration
-  - Add labels
-*/
 
 var calendarEvents = {
 
@@ -61,13 +42,6 @@ var calendarEvents = {
   },
 
   /**
-   * Debug only: log current value of this reference.
-   */
-  debugLog: function() {
-    console.log(this);
-  },
-
-  /**
    * Check to see if requirements are met.
    */
   requirementsMet: function() {
@@ -79,6 +53,10 @@ var calendarEvents = {
         return false;
     }
     return true;
+  },
+
+  calculatedStartTime: function(startTime) {
+    return this.hourInPixels / 60 * startTime;
   },
 
   /******************** DATA METHODS ********************/
@@ -178,7 +156,7 @@ var calendarEvents = {
     const eventEl = this.createCalElement('div', this.domClasses['event'], calEvent.starts_at);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
     eventEl.style.height = `${calEvent.duration}px`;
-    eventEl.style.top = `${calEvent.starts_at}px`;
+    eventEl.style.top = `${this.calculatedStartTime(calEvent.starts_at)}px`;
 
     // Add title, location if exist
     if ( undefined !== calEvent.title && calEvent.title.length > 0) {
@@ -246,7 +224,6 @@ var calendarEvents = {
     }
     this.sortEvents();
     this.renderMarkup();
-    this.debugLog();
   },
 };
 
