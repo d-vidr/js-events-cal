@@ -1,7 +1,7 @@
 'use strict';
 /*
  Assumptions:
- - I am not using ES6 since I'm not using a transpiler like Babel
+
  */
 
 /*
@@ -12,35 +12,30 @@
 
 var calendarEvents = {
 
-  // Project settings.
+  /******************** SETTINGS ********************/
   appNodeId: 'calendar',
-  startTime: 9,
-  endTime: 9,
-  hourInPixels: 60,
-
-  // Don't edit these.
-  minuteInPixels: this.hourInPixels/60,
+  startTime: 9, // The start time.
+  hoursInCalDay: 12, // The number of hours to be shown in day.
+  hourInPixels: 60, // How many vertical pixels represent an hour.
 
   // Events arrays.
   calEvents: [],
   sortedCalEvents: [],
 
-  // Error feedback.
-  errorMsg: '',
-
   // HTML templates.
   calEventTemplate: '<div class="cal-event" style="{$test}"></div>',
+
+  /******************** UTILITY METHODS ********************/
 
   // Set up calendar.
   setup: function(calEvents) {
     this.calEvents = calEvents;
   },
 
-  logError: function() {
-    if (this.errorMsg.length > 0) {
-      console.log(this.errorMsg);
-      this.debugLog();
-    }
+  logError: function(msg) {
+    console.log(msg);
+    // Also show current parent object state.
+    this.debugLog();
   },
 
   debugLog: function() {
@@ -54,13 +49,19 @@ var calendarEvents = {
       || !Array.isArray(this.calEvents)
       || 0 === this.calEvents.length
       ) {
-        this.errorMsg = 'Please supply an array of events.';
         return false;
     }
     return true;
   },
 
-  // Compare function for sorting start times.
+  /******************** DATA METHODS ********************/
+
+  /**
+   * Compare function for sorting events by start time.
+   *
+   * @param {number} a Number to compare.
+   * @param {number} b Number to compare.
+   */
   compareStartTime: function(a,b) {
     if (a.starts_at < b.starts_at) {
       return -1;
@@ -71,14 +72,16 @@ var calendarEvents = {
     return 0;
   },
 
+  /**
+   * Sort events.
+   */
   sortEvents: function() {
     this.sortedCalEvents = this.calEvents.slice();
     this.sortedCalEvents.sort(this.compareStartTime);
   },
 
   /**
-   * Cycle through all sorted events and add overlap information.
-   * We will use 'overlapping_events' to calculate event width.
+   * Calculate and set overlap info.
    */
   setOverlapInfo: function() {
     const sortedCalEvents = this.sortedCalEvents;
@@ -114,7 +117,76 @@ var calendarEvents = {
     })
   },
 
-  renderEventMarkup: function(calEvent) {
+  /******************** RENDER METHODS ********************/
+
+  /**
+   * Get hour label for time including AM/PM.
+   *
+   * @param {number} h Hour.
+   */
+  getHourLabel: function(h) {
+    let hour = 0;
+    let hourLabel = 'AM';
+    if( h > 12 ) {
+      hour = h - 12;
+      hourLabel = 'PM';
+    } else {
+      hour = h;
+      hourLabel = 'AM';
+    }
+    return `${hour} ${hourLabel}`;
+  },
+
+  /**
+   * Append element to main application DOM element.
+   *
+   * @param {Object} el Node to append.
+   */
+  appendToCal: function(el) {
+    const cal = document.getElementById(this.appNodeId);
+    cal.appendChild(el);
+  },
+
+  /**
+   * Get single hour block for rendering calendar.
+   */
+  getSingleHourBlock: function() {
+    const calHourNode = document.createElement('div');
+    calHourNode.classList.add('calendar-hour');
+    return calHourNode;
+  },
+
+  /**
+   * Get single hour block label for rendering calendar.
+   *
+   * @param {number} h Hour.
+   */
+  getSingleHourBlockLabel: function(h) {
+    const calHourLabel = document.createElement('span');
+    calHourLabel.classList.add('cal-label');
+    calHourLabel.innerHTML = this.getHourLabel(h);
+    return calHourLabel;
+  },
+
+  /**
+   * Render calendar hour blocks.
+   */
+  renderCalHourBlocks: function() {
+    const endTime = this.startTime + this.hoursInCalDay;
+    for (let h=this.startTime; h<endTime+1; h++) {
+      const calHourNode = this.getSingleHourBlock();
+      const calHourLabel = this.getSingleHourBlockLabel(h);
+      calHourNode.appendChild(calHourLabel);
+      this.appendToCal(calHourNode);
+    }
+  },
+
+  /**
+   * Render event markup (single)
+   *
+   * @param {object} Event object.
+   */
+  getSingleEvent: function(calEvent) {
     const eventNode = document.createElement('div');
     const overlaps = calEvent.overlaps;
     const eventWidth = (overlaps > 0) ? 100/(overlaps+1) : 100;
@@ -124,11 +196,20 @@ var calendarEvents = {
     return eventNode;
   },
 
-  renderCalendarMarkup: function() {
-    const renderEventMarkup = this.renderEventMarkup;
-    const calendar = document.getElementById(this.appNodeId);
+  /**
+   * Render all markup.
+   */
+  renderMarkup: function() {
+    const getSingleEvent = this.getSingleEvent;
+    const appendToCal = this.appendToCal;
+
+    // First render calendar markup - container, hour divs
+    this.renderCalHourBlocks();
+
+    // Then, render events.
     this.sortedCalEvents.forEach(function(calEvent) {
-      calendar.appendChild(renderEventMarkup(calEvent));
+      const singleEvent = getSingleEvent(calEvent);
+      appendToCal(singleEvent);
     })
   },
 
@@ -136,18 +217,23 @@ var calendarEvents = {
   render: function(calEvents) {
     this.setup(calEvents);
     if (!this.requirementsMet()) {
-      this.logError();
+      this.logError('Please supply an array of events.');
       return;
     }
     this.sortEvents();
     this.setOverlapInfo();
-    this.renderCalendarMarkup();
+    this.renderMarkup();
 
     // Logging for dev.
     this.debugLog();
   },
 };
 
+/**
+ * Global wrapper function to render events.
+ *
+ * @param {Array.Object[]} calEvents Array of events objects.
+ */
 var renderEvents = function(calEvents) {
   calendarEvents.render(calEvents);
 }
