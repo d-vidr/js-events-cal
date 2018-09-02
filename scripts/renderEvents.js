@@ -10,6 +10,15 @@
   - Remove console.logs
 */
 
+/*
+  - Nicer to create properties with html templates for easy maintenance
+
+
+  To do:
+  - set height of event with duration
+  - Add labels
+*/
+
 var calendarEvents = {
 
   /******************** SETTINGS ********************/
@@ -17,32 +26,50 @@ var calendarEvents = {
   startTime: 9, // The start time.
   hoursInCalDay: 12, // The number of hours to be shown in day.
   hourInPixels: 60, // How many vertical pixels represent an hour.
+  domClasses: {
+    hour: 'cal-hour',
+    hourLabel: 'cal-hour-label',
+    event: 'cal-event',
+    eventTitle: 'cal-event-title',
+    eventLocation: 'cal-event-location',
+  },
 
   // Events arrays.
   calEvents: [],
   sortedCalEvents: [],
 
-  // HTML templates.
-  calEventTemplate: '<div class="cal-event" style="{$test}"></div>',
-
   /******************** UTILITY METHODS ********************/
 
-  // Set up calendar.
+  /**
+   * Set up application.
+   *
+   * @param {Object.<number, string>} calEvents Array of event objects.
+   */
   setup: function(calEvents) {
     this.calEvents = calEvents;
   },
 
+  /**
+   * Log errors.
+   *
+   * @param {string} msg Error message to log.
+   */
   logError: function(msg) {
     console.log(msg);
     // Also show current parent object state.
     this.debugLog();
   },
 
+  /**
+   * Debug only: log current value of this reference.
+   */
   debugLog: function() {
     console.log(this);
   },
 
-  // Check requirements.
+  /**
+   * Check to see if requirements are met.
+   */
   requirementsMet: function() {
     if (
       !this.calEvents
@@ -148,24 +175,21 @@ var calendarEvents = {
   },
 
   /**
-   * Get single hour block for rendering calendar.
-   */
-  getSingleHourBlock: function() {
-    const calHourNode = document.createElement('div');
-    calHourNode.classList.add('calendar-hour');
-    return calHourNode;
-  },
-
-  /**
-   * Get single hour block label for rendering calendar.
+   * Create calendar DOM element.
    *
-   * @param {number} h Hour.
+   * @param {string} type Type of element - div, span, etc.
+   * @param {string} domClass DOM element class.
+   * @param {string} html HTML text.
    */
-  getSingleHourBlockLabel: function(h) {
-    const calHourLabel = document.createElement('span');
-    calHourLabel.classList.add('cal-label');
-    calHourLabel.innerHTML = this.getHourLabel(h);
-    return calHourLabel;
+  createCalElement: function(type, domClass, html) {
+    const el = document.createElement(type);
+    if (undefined !== domClass) {
+      el.classList.add(domClass);
+    }
+    if (undefined !== html) {
+      el.innerHTML = html;
+    }
+    return el;
   },
 
   /**
@@ -173,40 +197,51 @@ var calendarEvents = {
    */
   renderCalHourBlocks: function() {
     const endTime = this.startTime + this.hoursInCalDay;
-    for (let h=this.startTime; h<endTime+1; h++) {
-      const calHourNode = this.getSingleHourBlock();
-      const calHourLabel = this.getSingleHourBlockLabel(h);
-      calHourNode.appendChild(calHourLabel);
-      this.appendToCal(calHourNode);
+    for (let h = this.startTime; h < endTime + 1; h++) {
+      const calHour = this.createCalElement('div');
+      const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getHourLabel(h));
+      calHour.appendChild(calHourLabel);
+      this.appendToCal(calHour);
     }
   },
 
   /**
-   * Render event markup (single)
+   * Get created single event DOM element.
    *
    * @param {object} Event object.
    */
   getSingleEvent: function(calEvent) {
-    const eventNode = document.createElement('div');
+    const eventEl = this.createCalElement('div', this.domClasses['event'], calEvent.starts_at);
     const overlaps = calEvent.overlaps;
     const eventWidth = (overlaps > 0) ? 100/(overlaps+1) : 100;
-    eventNode.classList.add('calendar-item');
-    eventNode.setAttribute('style', `width: ${eventWidth}%;`);
-    eventNode.innerHTML = calEvent.starts_at;
-    return eventNode;
+    const eventHeight = calEvent.duration;
+    eventEl.setAttribute('style', `width: ${eventWidth}%; height: ${eventHeight}`);
+    // Add title, location if exist
+    if ( undefined !== calEvent.title && calEvent.title.length > 0) {
+      eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
+    }
+    if ( undefined !== calEvent.location && calEvent.location.length > 0) {
+      eventEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
+    }
+    return eventEl;
+  },
+
+  /**
+   * Render calendar events.
+   */
+  renderEvents: function() {
+    this.sortedCalEvents.forEach(function(calEvent) {
+      const singleEvent = this.getSingleEvent(calEvent);
+      this.appendToCal(singleEvent);
+    }, this);
   },
 
   /**
    * Render all markup.
    */
   renderMarkup: function() {
-    // First render calendar markup - container, hour divs
     this.renderCalHourBlocks();
-    // Then, render events.
-    this.sortedCalEvents.forEach(function(calEvent) {
-      const singleEvent = this.getSingleEvent(calEvent);
-      this.appendToCal(singleEvent);
-    }, this);
+    this.renderEvents();
   },
 
   // Render calendar and events.
@@ -219,16 +254,13 @@ var calendarEvents = {
     this.sortEvents();
     this.setOverlapInfo();
     this.renderMarkup();
-
-    // Logging for dev.
-    this.debugLog();
   },
 };
 
 /**
  * Global wrapper function to render events.
  *
- * @param {Array.Object[]} calEvents Array of events objects.
+ * @param {Object[].<number, string>} calEvents Array of events objects.
  */
 var renderEvents = function(calEvents) {
   calendarEvents.render(calEvents);
