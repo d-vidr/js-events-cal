@@ -10,6 +10,7 @@ var calendarEvents = {
   domClasses: {
     hour: 'cal-hour',
     hourLabel: 'cal-hour-label',
+    eventsContainer: 'cal-events',
     event: 'cal-event',
     eventTitle: 'cal-event-title',
     eventLocation: 'cal-event-location',
@@ -110,9 +111,10 @@ var calendarEvents = {
    *
    * @param {Object} el Node to append.
    */
-  appendToCal: function(el) {
-    const cal = document.getElementById(this.appNodeId);
-    cal.appendChild(el);
+  appendToApp: function(el,parent) {
+    const parentId = ( 'undefined' !== typeof parent ) ? parent : this.appNodeId;
+    const parentEl = document.getElementById(parentId);
+    parentEl.appendChild(el);
   },
 
   /**
@@ -124,10 +126,10 @@ var calendarEvents = {
    */
   createCalElement: function(type, domClass, html) {
     const el = document.createElement(type);
-    if (undefined !== domClass) {
+    if ('undefined' !== typeof domClass) {
       el.className = domClass;
     }
-    if (undefined !== html) {
+    if ('undefined' !== typeof html) {
       el.innerHTML = html;
     }
     return el;
@@ -143,7 +145,7 @@ var calendarEvents = {
       const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getHourLabel(h));
       calHour.style.height = `${this.hourInPixels}px`;
       calHour.appendChild(calHourLabel);
-      this.appendToCal(calHour);
+      this.appendToApp(calHour);
     }
   },
 
@@ -153,16 +155,16 @@ var calendarEvents = {
    * @param {object} Event object.
    */
   createSingleEvent: function(calEvent) {
-    const eventEl = this.createCalElement('div', this.domClasses['event'], calEvent.starts_at);
+    const eventEl = this.createCalElement('div', this.domClasses['event']);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
     eventEl.style.height = `${calEvent.duration}px`;
     eventEl.style.top = `${this.calculatedStartTime(calEvent.starts_at)}px`;
 
     // Add title, location if exist
-    if ( undefined !== calEvent.title && calEvent.title.length > 0) {
+    if ( 'undefined' !== typeof calEvent.title && calEvent.title.length > 0) {
       eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
     }
-    if ( undefined !== calEvent.location && calEvent.location.length > 0) {
+    if ( 'undefined' !== typeof calEvent.location && calEvent.location.length > 0) {
       eventEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
     }
     return eventEl;
@@ -187,6 +189,10 @@ var calendarEvents = {
    * Render calendar events.
    */
   renderEvents: function() {
+    // Add event container.
+    const container = this.createCalElement('div',this.domClasses['eventsContainer']);
+    this.appendToApp(container);
+
     let simEvents = [];
     this.sortedCalEvents.forEach(function(calEvent) {
       const singleEvent = this.createSingleEvent(calEvent);
@@ -203,7 +209,7 @@ var calendarEvents = {
       }
       singleEvent.style.width = `${eventWidth}%`;
       simEvents.push(singleEvent);
-      this.appendToCal(singleEvent);
+      container.appendChild(singleEvent);
     }, this);
   },
 

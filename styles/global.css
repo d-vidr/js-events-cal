@@ -27,12 +27,21 @@ html {
 	max-width: 40%;
 }
 
+.cal-events {
+	margin: 0 5%;
+	position: absolute;
+	top: 0;
+	width: 90%;
+}
+
 .cal-hour {
 	border-bottom: 1px #ccc solid;
+	box-sizing: border-box;
 }
 
 .cal-event {
 	background-color: #dafdc1;
+	box-sizing: border-box;
 	border-left: 4px #49a821 solid;
 	position: absolute;
 }
