@@ -107,43 +107,6 @@ var calendarEvents = {
     this.sortedCalEvents.sort(this.compareStartTime);
   },
 
-  /**
-   * Calculate and set overlap info.
-   */
-  setOverlapInfo: function() {
-    const sortedCalEvents = this.sortedCalEvents;
-    let endTimes = [];
-    sortedCalEvents.forEach(function(calEvent) {
-      calEvent.overlaps = 0;
-      if (!calEvent.starts_at || !calEvent.duration) {
-        return; // Move on to next event.
-      }
-      if (endTimes.length > 0) {
-        let endTimesToRemove = [];
-        // Cycle through existing endTimes and check if current event starts after.
-        endTimes.forEach(function(endTime) {
-          if (calEvent.starts_at > endTime) {
-            endTimesToRemove.push(endTimes.indexOf(endTime));
-          }
-        });
-        // Remove irrelevant endTimes.
-        endTimesToRemove.forEach(function(endTime) {
-          endTimes.splice(endTimes.indexOf(endTime));
-        });
-      }
-
-      // If end times still exist, both current event and event in endTimes overlap.
-      if (endTimes.length > 0) {
-        const currentItemIndex = sortedCalEvents.indexOf(calEvent);
-        sortedCalEvents[currentItemIndex-1].overlaps += 1;
-        // Increment current calEvent overlaps by number of endTimes.
-        sortedCalEvents[currentItemIndex].overlaps = endTimes.length;
-      }
-      // Push current end time to check against next event.
-      endTimes.push(calEvent.starts_at + calEvent.duration);
-    })
-  },
-
   /******************** RENDER METHODS ********************/
 
   /**
@@ -184,7 +147,7 @@ var calendarEvents = {
   createCalElement: function(type, domClass, html) {
     const el = document.createElement(type);
     if (undefined !== domClass) {
-      el.classList.add(domClass);
+      el.className = domClass;
     }
     if (undefined !== html) {
       el.innerHTML = html;
@@ -198,24 +161,25 @@ var calendarEvents = {
   renderCalHourBlocks: function() {
     const endTime = this.startTime + this.hoursInCalDay;
     for (let h = this.startTime; h < endTime + 1; h++) {
-      const calHour = this.createCalElement('div');
+      const calHour = this.createCalElement('div', this.domClasses['hour']);
       const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getHourLabel(h));
+      calHour.style.height = `${this.hourInPixels}px`;
       calHour.appendChild(calHourLabel);
       this.appendToCal(calHour);
     }
   },
 
   /**
-   * Get created single event DOM element.
+   * Create single event DOM element.
    *
    * @param {object} Event object.
    */
-  getSingleEvent: function(calEvent) {
+  createSingleEvent: function(calEvent) {
     const eventEl = this.createCalElement('div', this.domClasses['event'], calEvent.starts_at);
-    const overlaps = calEvent.overlaps;
-    const eventWidth = (overlaps > 0) ? 100/(overlaps+1) : 100;
-    const eventHeight = calEvent.duration;
-    eventEl.setAttribute('style', `width: ${eventWidth}%; height: ${eventHeight}`);
+    eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
+    eventEl.style.height = `${calEvent.duration}px`;
+    eventEl.style.top = `${calEvent.starts_at}px`;
+
     // Add title, location if exist
     if ( undefined !== calEvent.title && calEvent.title.length > 0) {
       eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
@@ -226,12 +190,41 @@ var calendarEvents = {
     return eventEl;
   },
 
+  updateSimultaneousEvents: function(simEvents, currentEvent) {
+    if (simEvents.length > 0) {
+      let simEventsToRemove = [];
+      simEvents.forEach(function(simEvent) {
+        if (currentEvent.starts_at > simEvent.dataset.endTime) {
+          simEventsToRemove.push(simEvents.indexOf(simEvent));
+        }
+      });
+      simEventsToRemove.forEach(function(endTime) {
+        simEvents.splice(simEvents.indexOf(endTime));
+      });
+    }
+    return simEvents;
+  },
+
   /**
    * Render calendar events.
    */
   renderEvents: function() {
+    let simEvents = [];
     this.sortedCalEvents.forEach(function(calEvent) {
-      const singleEvent = this.getSingleEvent(calEvent);
+      const singleEvent = this.createSingleEvent(calEvent);
+      let eventWidth = 100;
+      // Check for simultaneous events and set width / left position.
+      simEvents = this.updateSimultaneousEvents(simEvents, calEvent);
+      if (0 < simEvents.length) {
+        eventWidth = 100 / (simEvents.length + 1);
+        singleEvent.style.left = `${simEvents.length * eventWidth}%`;
+        simEvents.forEach(function(simEvent, idx) {
+          simEvent.style.width = `${eventWidth}%`;
+          simEvent.style.left = `${idx * eventWidth}%`;
+        });
+      }
+      singleEvent.style.width = `${eventWidth}%`;
+      simEvents.push(singleEvent);
       this.appendToCal(singleEvent);
     }, this);
   },
@@ -252,8 +245,8 @@ var calendarEvents = {
       return;
     }
     this.sortEvents();
-    this.setOverlapInfo();
     this.renderMarkup();
+    this.debugLog();
   },
 };
 

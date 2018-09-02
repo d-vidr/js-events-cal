@@ -23,14 +23,16 @@ html {
 
 .calendar {
 	border: 1px #ccc solid;
+	position: relative;
 	max-width: 40%;
 }
 
-.calendar__day {
-	max-width: 25%;
+.cal-hour {
+	border-bottom: 1px #ccc solid;
 }
 
-.calendar__hour {
-	border: 1px solid #000;
-	height: 40px;
+.cal-event {
+	background-color: #dafdc1;
+	border-left: 4px #49a821 solid;
+	position: absolute;
 }
