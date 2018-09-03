@@ -14,6 +14,7 @@ var calendarEvents = {
     event: 'cal-event',
     eventTitle: 'cal-event-title',
     eventLocation: 'cal-event-location',
+    eventTime: 'cal-event-time',
   },
 
   // Events arrays.
@@ -63,14 +64,21 @@ var calendarEvents = {
   calcTime: function(timeFromStart) {
     const hours = this.startTime + (timeFromStart / 60);
     let rhours = Math.floor(hours);
-    let minutes = 60 * (hours - rhours);
+    const minutes = 60 * (hours - rhours);
+    let rminutes = Math.round(minutes);
     let label = 'AM';
     if ( 12 < rhours ) {
       rhours = rhours - 12;
       label = 'PM';
     }
-    minutes = ( 0 !== minutes ) ? minutes : '00';
-    return `${rhours}:${minutes} ${label}`;
+    rminutes = ( 0 !== rminutes ) ? `:${rminutes}` : '';
+    return `${rhours}${rminutes} ${label}`;
+  },
+
+  getEventTime: function(calEvent) {
+    const startTime = this.calcTime(calEvent.starts_at);
+    const endTime = this.calcTime(calEvent.starts_at + calEvent.duration);
+    return `${startTime} - ${endTime}`;
   },
 
   /******************** DATA METHODS ********************/
@@ -180,7 +188,7 @@ var calendarEvents = {
     if ( 'undefined' !== typeof calEvent.location && calEvent.location.length > 0) {
       eventEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
     }
-    console.log(this.calcTime(calEvent.starts_at));
+    eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTime'], this.getEventTime(calEvent)));
     return eventEl;
   },
 
