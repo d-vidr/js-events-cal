@@ -165,8 +165,12 @@ var calendarEvents = {
     for (let h = this.startTime; h < endTime + 1; h++) {
       const calHour = this.createCalElement('div', this.domClasses['hour']);
       const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getHourLabel(h));
-      calHour.style.height = `${this.hourInPixels}px`;
       calHour.appendChild(calHourLabel);
+      if (h === endTime) {
+        calHour.classList.add('last');
+      } else {
+        calHour.style.height = `${this.hourInPixels}px`;
+      }
       this.appendToApp(calHour);
     }
   },
@@ -269,6 +273,12 @@ var renderEvents = function(calEvents) {
 }
 
 // ***** FOR DEVELOPMENT ONLY *****
-var eventsArray = [{starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"}, {starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"}, {starts_at: 75, duration: 60, title: "Sync with John"}, {starts_at: 360, duration: 25}, {starts_at: 420, duration: 120}];
+var eventsArray = [
+  {starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"},
+  {starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"},
+  {starts_at: 75, duration: 60, title: "Sync with John"},
+  {starts_at: 360, duration: 25},
+  {starts_at: 420, duration: 120}
+];
 renderEvents(eventsArray);
 // ***** END DEVELOPMENT ONLY CODE *****

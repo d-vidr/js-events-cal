@@ -24,6 +24,7 @@ html {
 
 .calendar {
 	border: 1px #ccc solid;
+	line-height: 1.2;
 	position: relative;
 	margin: auto;
 	max-width: 60%;
@@ -33,6 +34,11 @@ html {
 .cal-hour {
 	border-bottom: 1px #ccc solid;
 	box-sizing: border-box;
+}
+
+.cal-hour.last {
+	border: none;
+	height: 0;
 }
 
 .cal-hour-label {
@@ -68,6 +74,9 @@ html {
 	position: absolute;
 }
 
+.cal-event-label {
+	font-weight: 600;
+}
 .cal-event-title + .cal-event-location:before {
 	content: ' / ';
 }
