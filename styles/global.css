@@ -18,30 +18,60 @@ html {
 }
 
 .events-heading {
-	color: blue;
+	font-size: 24px;
+	text-align: center;
 }
 
 .calendar {
 	border: 1px #ccc solid;
 	position: relative;
-	max-width: 40%;
+	margin: auto;
+	max-width: 60%;
 }
 
+/* Hour blocks */
+.cal-hour {
+	border-bottom: 1px #ccc solid;
+	box-sizing: border-box;
+}
+
+.cal-hour-label {
+	box-sizing: border-box;
+	display: block;
+	font-size: 12px;
+	left: -60px;
+	top: -0.8em;
+	position: relative;
+	padding-right: 0.5em;
+	text-align: right;
+	width: 60px;
+}
+
+/* Events */
 .cal-events {
+	color: #49a821;
+	font-size: 10px;
 	margin: 0 5%;
 	position: absolute;
 	top: 0;
 	width: 90%;
 }
 
-.cal-hour {
-	border-bottom: 1px #ccc solid;
-	box-sizing: border-box;
-}
-
 .cal-event {
 	background-color: #dafdc1;
 	box-sizing: border-box;
 	border-left: 4px #49a821 solid;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding-left: 1em;
 	position: absolute;
+}
+
+.cal-event-title + .cal-event-location:before {
+	content: ' / ';
+}
+
+.cal-event-time {
+	display: block;
 }

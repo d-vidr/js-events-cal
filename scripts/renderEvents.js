@@ -12,6 +12,7 @@ var calendarEvents = {
     hourLabel: 'cal-hour-label',
     eventsContainer: 'cal-events',
     event: 'cal-event',
+    eventLabel: 'cal-event-label',
     eventTitle: 'cal-event-title',
     eventLocation: 'cal-event-location',
     eventTime: 'cal-event-time',
@@ -177,16 +178,19 @@ var calendarEvents = {
    */
   createSingleEvent: function(calEvent) {
     const eventEl = this.createCalElement('div', this.domClasses['event']);
+    const labelEl = this.createCalElement('div', this.domClasses['eventLabel']);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
     eventEl.style.height = `${calEvent.duration}px`;
     eventEl.style.top = `${this.calcStartTimePos(calEvent.starts_at)}px`;
 
-    // Add title, location if exist
     if ( 'undefined' !== typeof calEvent.title && calEvent.title.length > 0) {
-      eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
+      labelEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
     }
     if ( 'undefined' !== typeof calEvent.location && calEvent.location.length > 0) {
-      eventEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
+      labelEl.appendChild(this.createCalElement('span', this.domClasses['eventLocation'], calEvent.location ));
+    }
+    if (0 < labelEl.children.length) {
+      eventEl.appendChild(labelEl);
     }
     eventEl.appendChild(this.createCalElement('span', this.domClasses['eventTime'], this.getEventTime(calEvent)));
     return eventEl;
