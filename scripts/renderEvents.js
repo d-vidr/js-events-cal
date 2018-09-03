@@ -139,6 +139,10 @@ var calendarEvents = {
     parentEl.appendChild(el);
   },
 
+  resetAppContainer: function() {
+    document.getElementById(this.appNodeId).innerHTML = '';
+  },
+
   /**
    * Create calendar DOM element.
    *
@@ -184,7 +188,7 @@ var calendarEvents = {
     const eventEl = this.createCalElement('div', this.domClasses['event']);
     const labelEl = this.createCalElement('div', this.domClasses['eventLabel']);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
-    eventEl.style.height = `${calEvent.duration}px`;
+    eventEl.style.height = `${calEvent.duration * this.hourInPixels/60}px`;
     eventEl.style.top = `${this.calcStartTimePos(calEvent.starts_at)}px`;
 
     if ( 'undefined' !== typeof calEvent.title && calEvent.title.length > 0) {
@@ -247,6 +251,7 @@ var calendarEvents = {
    * Render all markup.
    */
   renderMarkup: function() {
+    this.resetAppContainer();
     this.renderCalHourBlocks();
     this.renderEvents();
   },
@@ -280,5 +285,5 @@ var eventsArray = [
   {starts_at: 360, duration: 25},
   {starts_at: 420, duration: 120}
 ];
-renderEvents(eventsArray);
+// renderEvents(eventsArray);
 // ***** END DEVELOPMENT ONLY CODE *****
