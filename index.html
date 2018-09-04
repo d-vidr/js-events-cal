@@ -8,16 +8,9 @@
 	<body>
 		<div class="page-container">
 			<h1 class="events-heading">Events Calendar</h1>
-			<p>Call <code>renderEvents(events)</code> from js console where `events` is an array of objects in the following format:</p>
-			<p><code>[<br />
-				&nbsp;&nbsp;{starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"},<br />
-				&nbsp;&nbsp;{starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"},<br />
-				&nbsp;&nbsp;{starts_at: 75, duration: 60, title: "Sync with John"},
-				&nbsp;&nbsp;{starts_at: 360, duration: 25},<br />
-				&nbsp;&nbsp;{starts_at: 420, duration: 120}<br />
-				]
-			</code></p>
 			<div id="calendar" class="calendar">
+				<p>From console, pass an array of events to renderEvents() to render app.  A default list of events is declared in the global scope and can be used like so:</p>
+				<code>renderEvents(eventsArray);</code>
 			</div>
 		</div>
 		<script src="scripts/renderEvents.js" type="text/javascript"></script>

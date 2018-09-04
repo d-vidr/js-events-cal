@@ -1,8 +1,6 @@
 'use strict';
 
 var calendarEvents = {
-
-  /******************** SETTINGS ********************/
   appNodeId: 'calendar',
   startTime: 9, // The start time.
   hoursInCalDay: 12, // The number of hours to be shown in day.
@@ -22,12 +20,10 @@ var calendarEvents = {
   calEvents: [],
   sortedCalEvents: [],
 
-  /******************** UTILITY METHODS ********************/
-
   /**
    * Set up application.
    *
-   * @param {Object.<number, string>} calEvents Array of event objects.
+   * @param {Object[].<number, string>} calEvents Array of events objects.
    */
   setup: function(calEvents) {
     this.calEvents = calEvents;
@@ -39,13 +35,14 @@ var calendarEvents = {
    * @param {string} msg Error message to log.
    */
   logError: function(msg) {
-    console.log(msg);
-    // Also show current parent object state.
-    this.debugLog();
+    const errorEl = this.createCalElement('p', 'error', msg);
+    this.appendToApp(errorEl);
   },
 
   /**
    * Check to see if requirements are met.
+   *
+   * @returns {boolean} Whether requirements are met.
    */
   requirementsMet: function() {
     if (
@@ -58,12 +55,58 @@ var calendarEvents = {
     return true;
   },
 
-  calcStartTimePos: function(startTime) {
-    return this.hourInPixels / 60 * startTime;
+  /**
+   * Get standard time label (AM/PM) from hour provide as military time.
+   *
+   * @param {number} h Hour represented as military time.
+   * @param {string} AM/PM label.
+   */
+  getStandardTimeLabel: function(h) {
+    return ( h >= 12 ) ? 'PM' : 'AM';
   },
 
-  calcTime: function(timeFromStart) {
-    const hours = this.startTime + (timeFromStart / 60);
+  /**
+   * Get standard time hour from hour provided as military time.
+   *
+   * @param {number} h Hour represented as military time.
+   * @param {number} Standard time hour.
+   */
+  getStandardTimeHour: function(h) {
+    return ( h <= 12 ) ? h : h - 12;
+  },
+
+  /**
+   * Get hour label for time including AM/PM.
+   *
+   * @param {number} h Hour represented as 24 hour clock.
+   * @returns {string} 12 hour time with AM/PM label.
+   */
+  getCalHourLabel: function(h) {
+    const hour = this.getStandardTimeHour(h);
+    const hourLabel = this.getStandardTimeLabel(h);
+    return `${hour} ${hourLabel}`;
+  },
+
+  /**
+   * Get event time span (from, to).
+   *
+   * @param {Object.<number, string>} calEvent Events object.
+   * @returns {string} Time span represented as hh:mm - hh:mm.  No minutes shown on the hour.
+   */
+  getEventTime: function(calEvent) {
+    const startTime = this.calcTime(calEvent.starts_at);
+    const endTime = this.calcTime(calEvent.starts_at + calEvent.duration);
+    return `${startTime} - ${endTime}`;
+  },
+
+  /**
+   * Calculate time from minutes from start and include label.
+   *
+   * @param {number} minutesFromStart Number of minutes from startTime.
+   * @returns {string} Formatted time (hh:mm AM/PM).
+   */
+  calcTime: function(minutesFromStart) {
+    const hours = this.startTime + (minutesFromStart / 60);
     let rhours = Math.floor(hours);
     const minutes = 60 * (hours - rhours);
     let rminutes = Math.round(minutes);
@@ -76,19 +119,22 @@ var calendarEvents = {
     return `${rhours}${rminutes} ${label}`;
   },
 
-  getEventTime: function(calEvent) {
-    const startTime = this.calcTime(calEvent.starts_at);
-    const endTime = this.calcTime(calEvent.starts_at + calEvent.duration);
-    return `${startTime} - ${endTime}`;
+  /**
+   * Calculate pixel position representing time.
+   *
+   * @param {number} minutes Minutes from this.startTime.
+   * @returns {number} Pixel position representative of given time.
+   */
+  calcTimePixelPos: function(minutes) {
+    return this.hourInPixels / 60 * minutes;
   },
-
-  /******************** DATA METHODS ********************/
 
   /**
    * Compare function for sorting events by start time.
    *
    * @param {number} a Number to compare.
    * @param {number} b Number to compare.
+   * @returns {number} Number for sort function representing <, >, =.
    */
   compareStartTime: function(a,b) {
     if (a.starts_at < b.starts_at) {
@@ -108,24 +154,11 @@ var calendarEvents = {
     this.sortedCalEvents.sort(this.compareStartTime);
   },
 
-  /******************** RENDER METHODS ********************/
-
   /**
-   * Get hour label for time including AM/PM.
-   *
-   * @param {number} h Hour.
+   * Reset / clear app container.
    */
-  getHourLabel: function(h) {
-    let hour = 0;
-    let hourLabel = 'AM';
-    if( h > 12 ) {
-      hour = h - 12;
-      hourLabel = 'PM';
-    } else {
-      hour = h;
-      hourLabel = 'AM';
-    }
-    return `${hour} ${hourLabel}`;
+  resetAppContainer: function() {
+    document.getElementById(this.appNodeId).innerHTML = '';
   },
 
   /**
@@ -137,10 +170,6 @@ var calendarEvents = {
     const parentId = ( 'undefined' !== typeof parent ) ? parent : this.appNodeId;
     const parentEl = document.getElementById(parentId);
     parentEl.appendChild(el);
-  },
-
-  resetAppContainer: function() {
-    document.getElementById(this.appNodeId).innerHTML = '';
   },
 
   /**
@@ -168,7 +197,7 @@ var calendarEvents = {
     const endTime = this.startTime + this.hoursInCalDay;
     for (let h = this.startTime; h < endTime + 1; h++) {
       const calHour = this.createCalElement('div', this.domClasses['hour']);
-      const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getHourLabel(h));
+      const calHourLabel = this.createCalElement('span', this.domClasses['hourLabel'], this.getCalHourLabel(h));
       calHour.appendChild(calHourLabel);
       if (h === endTime) {
         calHour.classList.add('last');
@@ -182,14 +211,14 @@ var calendarEvents = {
   /**
    * Create single event DOM element.
    *
-   * @param {object} Event object.
+   * @param {Object.<number, string>} calEvent Events object.
    */
   createSingleEvent: function(calEvent) {
     const eventEl = this.createCalElement('div', this.domClasses['event']);
     const labelEl = this.createCalElement('div', this.domClasses['eventLabel']);
     eventEl.setAttribute('data-end-time', calEvent.starts_at + calEvent.duration);
     eventEl.style.height = `${calEvent.duration * this.hourInPixels/60}px`;
-    eventEl.style.top = `${this.calcStartTimePos(calEvent.starts_at)}px`;
+    eventEl.style.top = `${this.calcTimePixelPos(calEvent.starts_at)}px`;
 
     if ( 'undefined' !== typeof calEvent.title && calEvent.title.length > 0) {
       labelEl.appendChild(this.createCalElement('span', this.domClasses['eventTitle'], calEvent.title ));
@@ -204,6 +233,9 @@ var calendarEvents = {
     return eventEl;
   },
 
+  /**
+   * Update simultaneous event info. Used when rendering each event.
+   */
   updateSimultaneousEvents: function(simEvents, currentEvent) {
     if (simEvents.length > 0) {
       let simEventsToRemove = [];
@@ -231,7 +263,7 @@ var calendarEvents = {
     this.sortedCalEvents.forEach(function(calEvent) {
       const singleEvent = this.createSingleEvent(calEvent);
       let eventWidth = 100;
-      // Check for simultaneous events and set width / left position.
+      // Check for simultaneous events and set width / left position accordingly.
       simEvents = this.updateSimultaneousEvents(simEvents, calEvent);
       if (0 < simEvents.length) {
         eventWidth = 100 / (simEvents.length + 1);
@@ -256,7 +288,11 @@ var calendarEvents = {
     this.renderEvents();
   },
 
-  // Render calendar and events.
+  /**
+   * Create app.
+   *
+   * @param {Object[].<number, string>} calEvents Array of events objects.
+   */
   render: function(calEvents) {
     this.setup(calEvents);
     if (!this.requirementsMet()) {
@@ -269,7 +305,7 @@ var calendarEvents = {
 };
 
 /**
- * Global wrapper function to render events.
+ * Global wrapper function to render app.
  *
  * @param {Object[].<number, string>} calEvents Array of events objects.
  */
@@ -285,5 +321,4 @@ var eventsArray = [
   {starts_at: 360, duration: 25},
   {starts_at: 420, duration: 120}
 ];
-// renderEvents(eventsArray);
 // ***** END DEVELOPMENT ONLY CODE *****
