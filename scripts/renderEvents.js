@@ -309,16 +309,17 @@ var calendarEvents = {
  *
  * @param {Object[].<number, string>} calEvents Array of events objects.
  */
-var renderEvents = function(calEvents) {
+const renderEvents = function(calEvents) {
   calendarEvents.render(calEvents);
 }
 
-// ***** FOR DEVELOPMENT ONLY *****
-var eventsArray = [
+/**
+ * Sample events array.
+ */
+const eventsArray = [
   {starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"},
   {starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"},
   {starts_at: 75, duration: 60, title: "Sync with John"},
   {starts_at: 360, duration: 25},
   {starts_at: 420, duration: 120}
 ];
-// ***** END DEVELOPMENT ONLY CODE *****
