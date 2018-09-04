@@ -31,9 +31,9 @@ html {
 	line-height: 1.2;
 	position: relative;
 	margin: auto;
+	margin-left: 60px; /* Account for negative left position on .cal-hour-label */
 }
 
-/* Hour blocks */
 .cal-hour {
 	border-color: #ccc;
 	border-style: solid;
@@ -53,8 +53,8 @@ html {
 .cal-hour-label {
 	box-sizing: border-box;
 	display: block;
-	font-size: 12px;
-	left: -60px;
+	font-size: 16px;
+	left: -60px; /* Adjust left margin of container to accommodate */
 	top: -0.8em;
 	position: relative;
 	padding-right: 0.5em;
@@ -62,10 +62,9 @@ html {
 	width: 60px;
 }
 
-/* Events */
 .cal-events {
 	color: #49a821;
-	font-size: 20px;
+	font-size: 18px;
 	margin: 0 5%;
 	position: absolute;
 	top: 0;
@@ -99,10 +98,8 @@ html {
 		font-size: 16px;
 	}
 	.page-container {
+		margin: auto;
 		max-width: 800px;
-	}
-	.calendar {
-		max-width: 60%;
 	}
 	.events-heading {
 		font-size: 24px;
@@ -111,6 +108,6 @@ html {
 		font-size: 12px;
 	}
 	.cal-events {
-		font-size: 10px;
+		font-size: 12px;
 	}
 }
