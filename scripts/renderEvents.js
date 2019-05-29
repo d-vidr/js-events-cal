@@ -259,43 +259,53 @@ var calendarEvents = {
     const container = this.createCalElement('div',this.domClasses['eventsContainer']);
     this.appendToApp(container);
 
-    let simEvents = [];
-    this.sortedCalEvents.forEach(function(calEvent) {
-      const singleEvent = this.createSingleEvent(calEvent);
-      let eventWidth = 100;
-
-      // ----- needs reworking
-      // Check for simultaneous events and set width / left position accordingly.
-      simEvents = this.updateSimultaneousEvents(simEvents, calEvent);
-      if (0 < simEvents.length) {
-        eventWidth = 100 / (simEvents.length + 1);
-        singleEvent.style.left = `${simEvents.length * eventWidth}%`;
-        simEvents.forEach(function(simEvent, idx) {
-          simEvent.style.width = `${eventWidth}%`;
-          simEvent.style.left = `${idx * eventWidth}%`;
-        });
-      }
-      // ------------
-      singleEvent.style.width = `${eventWidth}%`;
-      simEvents.push(singleEvent);
-      container.appendChild(singleEvent);
-    }, this);
+    // let simEvents = [];
+    // this.sortedCalEvents.forEach(function(calEvent) {
+    //   const singleEvent = this.createSingleEvent(calEvent);
+    //   let eventWidth = 100;
+    //
+    //   // ----- needs reworking
+    //   // Check for simultaneous events and set width / left position accordingly.
+    //   simEvents = this.updateSimultaneousEvents(simEvents, calEvent);
+    //   if (0 < simEvents.length) {
+    //     eventWidth = 100 / (simEvents.length + 1);
+    //     singleEvent.style.left = `${simEvents.length * eventWidth}%`;
+    //     simEvents.forEach(function(simEvent, idx) {
+    //       simEvent.style.width = `${eventWidth}%`;
+    //       simEvent.style.left = `${idx * eventWidth}%`;
+    //     });
+    //   }
+    //   // ------------
+    //   singleEvent.style.width = `${eventWidth}%`;
+    //   simEvents.push(singleEvent);
+    //   container.appendChild(singleEvent);
+    // }, this);
   },
 
   setConcurrency: function() {
-    this.calEvents.forEach((event) => {
+    this.calEvents.forEach((event, index, thisEvents) => {
       // Filter events / reduce to get concurrents
-      const concurrents = this.calEvents.filter((comparedEvent) => {
+      const concurrents = thisEvents.filter((comparedEvent, comparedIndex) => {
         return (
-          // Compared event starts after this event starts
-          // but before it ends
-          comparedEvent.starts_at >= event.starts_at
+          // Has to start before orig ends, and end after orig starts
+          index !== comparedIndex
           && comparedEvent.starts_at < event.starts_at + event.duration
+          && comparedEvent.starts_at + comparedEvent.duration > event.starts_at
         )
       });
-      event.concurrents = concurrents.length;
+      event.concurrents = concurrents;
     })
   },
+
+  compareConcurrency: function() {
+    this.calEvents.forEach((event) => {
+      event.concurrentCount =
+        event.concurrents.length
+        ? event.concurrents.reduce((accum, curr) => Math.max(accum, curr.concurrents.length), event.concurrents.length)
+        : 0;
+    })
+  },
+
 
   /**
    * Render all markup.
@@ -320,6 +330,7 @@ var calendarEvents = {
     this.sortEvents();
     this.renderMarkup();
     this.setConcurrency();
+    this.compareConcurrency();
   },
 };
 
@@ -328,29 +339,29 @@ var calendarEvents = {
  *
  * @param {Object[].<number, string>} calEvents Array of events objects.
  */
-const renderEvents = function(calEvents) {
-  calendarEvents.render(calEvents);
-}
-
-/**
- * Sample events array.
- */
-
-/**
- * This now contains edge case which breaks layout.
- * Look at implementing logic that checks and sets max number potential simultaneous events.
- * So, 'Lunch with Karl' would have a value of 2, but the previous event only takes up 1/3.
- * also an issue w/ Sync with john. hmmm...
- * How can we
- */
-const eventsArray = [
-  {starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"},
-  {starts_at: 135, duration: 215, title: "Another Meeting with Ben", location: "Coffee Shop by the tracks"},
-  {starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"},
-  {starts_at: 75, duration: 60, title: "Sync with John"},
-  {starts_at: 360, duration: 25},
-  {starts_at: 420, duration: 120}
-];
+// const renderEvents = function(calEvents) {
+//   calendarEvents.render(calEvents);
+// }
+//
+// /**
+//  * Sample events array.
+//  */
+//
+// /**
+//  * This now contains edge case which breaks layout.
+//  * Look at implementing logic that checks and sets max number potential simultaneous events.
+//  * So, 'Lunch with Karl' would have a value of 2, but the previous event only takes up 1/3.
+//  * also an issue w/ Sync with john. hmmm...
+//  * How can we
+//  */
+// const eventsArray = [
+//   {starts_at: 120, duration: 45, title: "Meeting with Ben", location: "Coffee Shop"},
+//   {starts_at: 135, duration: 215, title: "Another Meeting with Ben", location: "Coffee Shop by the tracks"},
+//   {starts_at: 240, duration: 60, title: "Lunch with Karl", location: "TBA"},
+//   {starts_at: 75, duration: 60, title: "Sync with John"},
+//   {starts_at: 360, duration: 25},
+//   {starts_at: 420, duration: 120}
+// ];
 
 // Initial concurrence check
 // compare 120-165, 135-350, 240-300, etc.
