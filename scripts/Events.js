@@ -1,11 +1,12 @@
 class Events {
-  // Settings.
   appNodeId = 'calendar';
   startTime = 9; // The start time.
   hoursInCalDay = 12; // The number of hours to be shown in day.
   hourInPixels = 60; // How many vertical pixels represent an hour.
-  // Events array.
-  calEvents = [];
+  sortedEvents = [];
+  simultaneousEvents = [];
+  relatedSimultaneousEventCount = [];
+  simultaneousEventPosition = []; //
 
   /**
    * Set up application.
@@ -17,12 +18,13 @@ class Events {
       alert('Please supply an array of events.');
       return;
     }
-    this.calEvents = events;
-    this.setConcurrency();
-    this.compareConcurrency();
+    this.sortedEvents = events.slice().sort(this.compareStartTime);
+    this.setSimultaneousEventInfo();
+    this.setPositions();
     this.resetAppContainer();
     this.renderCalHourBlocks();
     this.renderEvents();
+    console.log(this.sortedEvents);
   }
 
   /**
@@ -144,41 +146,98 @@ class Events {
   renderEvents() {
     const events = `
       <div class="cal-events">
-        ${this.calEvents.map((event) => this.createSingleEvent(event)).join('')}
+        ${this.sortedEvents.map((event) => this.createSingleEvent(event)).join('')}
       </div>
     `;
     document.getElementById(this.appNodeId).innerHTML += events;
   };
 
-  setConcurrency() {
-    this.calEvents.forEach((event, index, thisEvents) => {
-      // Filter events / reduce to get concurrents
-      const concurrents = thisEvents.filter((comparedEvent, comparedIndex) => {
+  setSimultaneousEventInfo() {
+    this.simultaneousEvents = this.sortedEvents.map((event, index, events) => {
+      // Get events that collide for each event
+      return events.map((comparedEvent, comparedIndex) => {
+        // just return index of each
         return (
           // Has to start before orig ends, and end after orig starts
           index !== comparedIndex
           && comparedEvent.starts_at < event.starts_at + event.duration
           && comparedEvent.starts_at + comparedEvent.duration > event.starts_at
+          // Also include current event
+          || comparedIndex === index
         )
-      });
-      event.concurrents = concurrents;
-    })
-  };
+          ? comparedIndex
+          : undefined;
+      }).filter((eventIndex) => undefined !== eventIndex);
+    });
+    this.relatedSimultaneousEventCount = simultaneousEvents.map((events, allEventsindex, simEvents) => {
+      return events.reduce((acc, event, thisEventsindex) => {
+        const simEventsCount = simEvents[event].length;
+        return acc < simEventsCount
+          ? simEventsCount
+          : acc;
+      }, 0);
+    });
+  }
 
-  compareConcurrency() {
-    this.calEvents.forEach((event) => {
-      event.concurrentCount =
-        event.concurrents.length
-          ? event.concurrents.reduce((accum, curr) => Math.max(accum, curr.concurrents.length), event.concurrents.length)
-          : 0;
+  getEventWidth(index) {
+    return 100 / this.relatedSimultaneousEventCount[index];
+  }
+
+  getEventPosition(index) {
+    const eventWidth = this.getEventWidth(index);
+
+  }
+
+  setPositions() {
+    let colAssignment = [];
+    this.sortedEvents.forEach((event) => {
+      // Check colAssignment for empty and all values being less than start time, signify new group of collisions
+      if (! colAssignment.length || Math.max(colAssignment < event.stars_at)) {
+        colAssignment = [];
+        colAssignment.push(event.starts_at + event.duration);
+        return;
+      }
+      // If we haven't filled columns, just add event
+      if (colAssignment.length < event.concurrentCount) {
+        colAssignment.push(event.starts_at + event.duration);
+        return;
+      }
+      // Get lowest value of array that is less than start time and set position using index as factor
+      // and set value
+      const colPosition = colAssignment.reduce((acc, val, idx) => {
+        if (!acc) {
+          return idx;
+        }
+        if (val < acc) {
+          return idx;
+        }
+      });
+      colAssignment[colPosition] = event.starts_at + event.duration;
     })
+  }
+
+  /**
+   * Compare function for sorting events by start time.
+   *
+   * @param {number} a Number to compare.
+   * @param {number} b Number to compare.
+   * @returns {number} Number for sort function representing <, >, =.
+   */
+  compareStartTime(a,b) {
+    if (a.starts_at < b.starts_at) {
+      return -1;
+    }
+    if (a.starts_at > b.starts_at) {
+      return 1;
+    }
+    return 0;
   };
 }
 
 /**
  * Global wrapper function to render app.
  *
- * @param {Object[].<number, string>} calEvents Array of events objects.
+ * @param {Object[].<number, string>} sortedEvents Array of events objects.
  */
 const renderEvents = function(events) {
   new Events(events);
@@ -203,3 +262,6 @@ const eventsArray = [
   {starts_at: 360, duration: 25},
   {starts_at: 420, duration: 120}
 ];
+
+// 120-165, 135-350, 240-300, 75-135, 360-385, 420-540
+// Use collision info to set width and assign a left value
