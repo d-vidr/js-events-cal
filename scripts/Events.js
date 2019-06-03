@@ -177,13 +177,13 @@ class Events {
 
       const latestEndTime = eventMap.reduce((acc, item) => item > acc ? item : acc);
       const earliestEndTime = eventMap.reduce((acc, item) => item < acc ? item : acc);
-
+      let cols = 0;
       // If start time > = all end times up to this point, start a new "row"
       if (startTime >= latestEndTime) {
         // At this point we also know total cols for events up to this point.
         // We want to set all indexes up to current index
         // @todo use the zero based array better
-        const cols = eventMap.length-1;
+        cols = eventMap.length-1;
         for (let idx = eventColTotalsOffset; idx <= index; idx++) {
           this.eventColTotals[idx] = cols;
         }
@@ -192,7 +192,7 @@ class Events {
         col = 0;
         eventMap = [];
         eventMap[col+1] = endTime;
-        console.log(`eventMap[${col+1}]: ${endTime}`);
+        console.log(`RESET eventMap[${col+1}]: ${endTime}, offset: ${eventColTotalsOffset}`);
         this.simultaneousEventPositions[index] = col+1;
         return;
       }
@@ -203,19 +203,30 @@ class Events {
         eventMap[col] = endTime;
         console.log(`eventMap[${col}]: ${endTime}`);
         this.simultaneousEventPositions[index] = col;
+        // @todo: DRY this
+        // If last item, set eventColTotals again
+        if (index === this.sortedEvents.length - 1) {
+          cols = eventMap.length-1;
+          console.log(`offset: ${eventColTotalsOffset}, index: ${index}`);
+          for (let idx = eventColTotalsOffset; idx <= index; idx++) {
+            this.eventColTotals[idx] = cols;
+          }
+        }
         return;
       }
 
       // If we make it here, we need to loop through eventMap to find earliest value ending before start time
       // and get index to assign
-      const position = eventMap.reduce((acc, endTime, colIndex) => endTime < startTime ? colIndex : acc, 1);
+      const position = eventMap.reduce((acc, endTime, colIndex) => endTime <= startTime ? colIndex : acc, 1);
       eventMap[position] = endTime;
-      console.log(`eventMap[${position}]: ${endTime}`);
+      console.log(eventMap);
+      console.log(`UPDATE eventMap[${position}]: ${endTime}`);
       this.simultaneousEventPositions[index] = position;
 
       // If last item, set eventColTotals again
       if (index === this.sortedEvents.length - 1) {
-        const cols = eventMap.length-1;
+        cols = eventMap.length-1;
+        console.log(`offset: ${eventColTotalsOffset}, index: ${index}`);
         for (let idx = eventColTotalsOffset; idx <= index; idx++) {
           this.eventColTotals[idx] = cols;
         }
@@ -267,19 +278,19 @@ const eventsArray = [
   {starts_at: 240, duration: 60, title: "1 Lunch with Karl", location: "TBA"},
   {starts_at: 75, duration: 60, title: "1 Sync with John"},
   {starts_at: 360, duration: 25},
-  {starts_at: 420, duration: 120},
+  {starts_at: 460, duration: 120},
   {starts_at: 120, duration: 45, title: "3 Meeting with Ben", location: "Coffee Shop"},
   {starts_at: 135, duration: 215, title: "4 Another Meeting with Ben", location: "Coffee Shop by the tracks"},
   {starts_at: 240, duration: 60, title: "2 Lunch with Karl", location: "TBA"},
   {starts_at: 75, duration: 60, title: "2 Sync with John"},
   {starts_at: 360, duration: 25},
-  {starts_at: 420, duration: 120},
+  {starts_at: 470, duration: 120},
   {starts_at: 220, duration: 45, title: "4 Meeting with Ben", location: "Coffee Shop"},
   {starts_at: 35, duration: 115, title: "5 Another Meeting with Ben", location: "Coffee Shop by the tracks"},
   {starts_at: 40, duration: 390, title: "3 Lunch with Karl", location: "TBA"},
   {starts_at: 175, duration: 15, title: "3 Sync with John"},
   {starts_at: 460, duration: 150},
-  {starts_at: 400, duration: 60},
+  {starts_at: 450, duration: 60},
   {starts_at: 470, duration: 115, title: "6 Another Meeting with Ben", location: "Coffee Shop by the tracks"},
   {starts_at: 470, duration: 390, title: "4 Lunch with Karl", location: "TBA"},
 ];
