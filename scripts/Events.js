@@ -116,7 +116,7 @@ class Events {
   createSingleEvent(calEvent, index) {
     const elHeight = calEvent.duration * this.hourInPixels/60;
     const elTop = this.calcTimePixelPos(calEvent.starts_at);
-    const width = 20;
+    const width = 100 / this.eventColTotals[index];
     const leftPos = (this.simultaneousEventPositions[index] - 1) * width;
 
     const titleEl =
