@@ -5,6 +5,7 @@ class Events {
   hourInPixels = 60; // How many vertical pixels represent an hour.
   sortedEvents = [];
   simultaneousEventPositions = [];
+  eventColTotals = [];
 
   /**
    * Set up application.
@@ -23,6 +24,7 @@ class Events {
     this.renderEvents();
     console.log(this.sortedEvents);
     console.log(this.simultaneousEventPositions);
+    console.log(this.eventColTotals);
   }
 
   /**
@@ -158,41 +160,58 @@ class Events {
 
   setPositions() {
     let eventMap = [];
-    let count = 0;
-    this.simultaneousEventPositions = this.sortedEvents.map((event, index) => {
+    let col = 0;
+    let eventColTotalsOffset = 0;
+    this.sortedEvents.forEach((event, index) => {
       const startTime = event.starts_at;
       const endTime = event.starts_at + event.duration;
 
       // For first column
       if (!eventMap.length) {
-        eventMap.push(endTime);
-        count++;
-        return count;
+        eventMap[1] = endTime;
+        col++;
+        console.log(`eventMap[1]: ${endTime}`);
+        this.simultaneousEventPositions[index] = col;
+        return;
       }
 
       const latestEndTime = eventMap.reduce((acc, item) => item > acc ? item : acc);
       const earliestEndTime = eventMap.reduce((acc, item) => item < acc ? item : acc);
 
-      // If start time > all end times up to this point, start a new "row"
-      if (startTime > latestEndTime) {
-        count = 1;
+      // If start time > = all end times up to this point, start a new "row"
+      if (startTime >= latestEndTime) {
+        // At this point we also know total cols for events up to this point.
+        // We want to set all indexes up to current index
+        // @todo use the zero based array better
+        const cols = eventMap.length-1;
+        for (let idx = eventColTotalsOffset; idx <= index; idx++) {
+          this.eventColTotals[idx] = cols;
+        }
+        eventColTotalsOffset = index;
+        console.log(eventMap);
+        col = 0;
         eventMap = [];
-        eventMap[count] = endTime;
-        return count;
+        eventMap[col+1] = endTime;
+        console.log(`eventMap[${col+1}]: ${endTime}`);
+        this.simultaneousEventPositions[index] = col+1;
+        return;
       }
 
-      // If start time < all end times, add col
+      // If start time < at least one end times, add col
       if (startTime < earliestEndTime) {
-        count++;
-        eventMap[count] = endTime;
-        return count;
+        col++;
+        eventMap[col] = endTime;
+        console.log(`eventMap[${col}]: ${endTime}`);
+        this.simultaneousEventPositions[index] = col;
+        return;
       }
 
       // If we make it here, we need to loop through eventMap to find earliest value ending before start time
       // and get index to assign
       const position = eventMap.reduce((acc, endTime, colIndex) => endTime < startTime ? colIndex : acc, 1);
       eventMap[position] = endTime;
-      return position;
+      console.log(`eventMap[${position}]: ${endTime}`);
+      this.simultaneousEventPositions[index] = position;
     })
   }
 
@@ -244,4 +263,4 @@ const eventsArray = [
 ];
 
 // 120-165, 135-350, 240-300, 75-135, 360-385, 420-540
-// Use collision info to set width and assign a left value
+
