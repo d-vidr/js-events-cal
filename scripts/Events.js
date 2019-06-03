@@ -6,7 +6,7 @@ class Events {
   sortedEvents = [];
   simultaneousEvents = [];
   relatedSimultaneousEventCount = [];
-  simultaneousEventPosition = []; //
+  simultaneousEventPositions = [];
 
   /**
    * Set up application.
@@ -25,6 +25,9 @@ class Events {
     this.renderCalHourBlocks();
     this.renderEvents();
     console.log(this.sortedEvents);
+    console.log(this.simultaneousEvents);
+    console.log(this.relatedSimultaneousEventCount);
+    console.log(this.simultaneousEventPositions);
   }
 
   /**
@@ -113,10 +116,11 @@ class Events {
    *
    * @param {Object.<number, string>} calEvent Events object.
    */
-  createSingleEvent(calEvent) {
+  createSingleEvent(calEvent, index) {
     const elHeight = calEvent.duration * this.hourInPixels/60;
     const elTop = this.calcTimePixelPos(calEvent.starts_at);
-    const width = 100 / (calEvent.concurrentCount + 1);
+    const width = this.getEventWidth(index);
+    const leftPos = (this.simultaneousEventPositions[index] - 1) * width;
 
     const titleEl =
       calEvent.title
@@ -133,7 +137,12 @@ class Events {
 
     return `
       <div class="cal-event"
-          style="height: ${elHeight}px; top: ${elTop}px; width: ${width}%">
+          style="
+            height: ${elHeight}px;
+            top: ${elTop}px;
+            width: ${width}%;
+            left: ${leftPos}%;
+            ">
           ${labelEl}
           <span class="cal-event-time">${this.getEventTime(calEvent)}</span>
       </div>   
@@ -146,7 +155,7 @@ class Events {
   renderEvents() {
     const events = `
       <div class="cal-events">
-        ${this.sortedEvents.map((event) => this.createSingleEvent(event)).join('')}
+        ${this.sortedEvents.map((event, index) => this.createSingleEvent(event, index)).join('')}
       </div>
     `;
     document.getElementById(this.appNodeId).innerHTML += events;
@@ -169,7 +178,7 @@ class Events {
           : undefined;
       }).filter((eventIndex) => undefined !== eventIndex);
     });
-    this.relatedSimultaneousEventCount = simultaneousEvents.map((events, allEventsindex, simEvents) => {
+    this.relatedSimultaneousEventCount = this.simultaneousEvents.map((events, allEventsindex, simEvents) => {
       return events.reduce((acc, event, thisEventsindex) => {
         const simEventsCount = simEvents[event].length;
         return acc < simEventsCount
@@ -183,37 +192,43 @@ class Events {
     return 100 / this.relatedSimultaneousEventCount[index];
   }
 
-  getEventPosition(index) {
-    const eventWidth = this.getEventWidth(index);
-
-  }
-
   setPositions() {
-    let colAssignment = [];
-    this.sortedEvents.forEach((event) => {
-      // Check colAssignment for empty and all values being less than start time, signify new group of collisions
-      if (! colAssignment.length || Math.max(colAssignment < event.stars_at)) {
-        colAssignment = [];
-        colAssignment.push(event.starts_at + event.duration);
-        return;
+    let eventMap = [];
+    let count = 0;
+    this.simultaneousEventPositions = this.sortedEvents.map((event, index) => {
+      const cols = this.simultaneousEvents[index].length;
+      const startTime = event.starts_at;
+      const endTime = event.starts_at + event.duration;
+
+      if (index===5) {
+        console.log(cols);
+        console.log(count);
       }
-      // If we haven't filled columns, just add event
-      if (colAssignment.length < event.concurrentCount) {
-        colAssignment.push(event.starts_at + event.duration);
-        return;
+
+      if (count <= cols) {
+        count++;
+        eventMap[count] = endTime;
+        console.log('adding index: '+index);
+        return count;
       }
-      // Get lowest value of array that is less than start time and set position using index as factor
-      // and set value
-      const colPosition = colAssignment.reduce((acc, val, idx) => {
-        if (!acc) {
-          return idx;
-        }
-        if (val < acc) {
-          return idx;
-        }
-      });
-      colAssignment[colPosition] = event.starts_at + event.duration;
+
+      // Reset count if simultaneous events have been rendered.
+      if (startTime > eventMap.reduce((acc, item) => item > acc ? item : acc)) {
+        count = 0;
+        eventMap = [];
+        eventMap[count+1] = endTime;
+        console.log('reset '+index);
+        return count+1;
+      }
+
+      // If we make it here, we need to loop through eventMap to find earliest value ending before start time
+      // and get index to assign
+      const position = eventMap.reduce((acc, endTime, colIndex) => endTime < startTime ? colIndex : acc);
+      eventMap[position] = endTime;
+      return position;
     })
+
+
   }
 
   /**
