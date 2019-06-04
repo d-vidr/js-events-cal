@@ -40,10 +40,10 @@ class EventsCalendar {
     this.sortedEvents = [];
 
     /**
-     * Array of column positions, zero based. Ie col 1 = 0. Used to calculate left position of event.
+     * Column positions for events (zero based, ie col 1 = 0). Used to calculate left position of event.
      * @type {Array}
      */
-    this.simultaneousEventPositions = [];
+    this.eventColPositions = [];
 
     /**
      * Total columns for each event. Used to calculate width of event.
@@ -63,9 +63,11 @@ class EventsCalendar {
     }
 
     this.sortEvents(calEvents);
-    this.setPositions();
+    this.setEventColumns();
     this.renderCalHourBlocks();
     this.renderEvents();
+    console.log(this.eventColPositions);
+    console.log(this.eventColTotals);
   }
 
   /**
@@ -95,9 +97,17 @@ class EventsCalendar {
   };
 
   /**
-   * Set event positions (simultaneousEventPositions, eventColTotals)
+   * Setup event column information (eventColPositions, eventColTotals)
+   *
+   * This information essentially maps out a grid for our events for placement on the calendar in appropriate positions,
+   * accounting for simultaneous events. By having the eventColPosition and eventColTotal for an event, we know where it
+   * should go and how wide it should be to account for other events, keeping in mind any colliding events must have the
+   * same width.
+   *
+   * For example, if an event has an eventColPosition of 1 and an eventColTotal of 4, that event should have a width of
+   * 25% and a left position of 0.  If values are 3 and 5, respectfully, the width 20% and left position 40%.
    */
-  setPositions() {
+  setEventColumns() {
     /**
      * Array of end times associated to a column (represented by zero based index). This is used to store previous event
      * positions within columns.
@@ -125,7 +135,7 @@ class EventsCalendar {
       // First column
       if (!eventMap.length) {
         eventMap[col] = endTime;
-        this.simultaneousEventPositions[index] = col;
+        this.eventColPositions[index] = col+1; // adj for zero based value.
         this.setColTotals(index, eventMap);
         col++;
         return;
@@ -141,7 +151,7 @@ class EventsCalendar {
         col = 0;
         eventMap = [];
         eventMap[col] = endTime;
-        this.simultaneousEventPositions[index] = col;
+        this.eventColPositions[index] = col+1; // adj for zero based value.
         col++;
         return;
       }
@@ -149,7 +159,7 @@ class EventsCalendar {
       // If start time < earliest end time, add a column.
       if (startTime < earliestEndTime) {
         eventMap[col] = endTime;
-        this.simultaneousEventPositions[index] = col;
+        this.eventColPositions[index] = col+1;
         this.setColTotals(index, eventMap);
         col++;
         return;
@@ -158,7 +168,7 @@ class EventsCalendar {
       // Loop through eventMap to find lowest value < start time and assign to that column.
       const position = eventMap.reduce((acc, endTime, colIndex) => endTime <= startTime ? colIndex : acc, 1);
       eventMap[position] = endTime;
-      this.simultaneousEventPositions[index] = position;
+      this.eventColPositions[index] = position+1; // adj for zero based value.
       this.setColTotals(index, eventMap);
       col++;
     })
@@ -232,7 +242,7 @@ class EventsCalendar {
     const elHeight = calEvent.duration * this.hourInPixels/60;
     const elTop = this.calcTimePixelPos(calEvent.starts_at);
     const width = 100 / this.eventColTotals[index];
-    const leftPos = (this.simultaneousEventPositions[index]) * width;
+    const leftPos = (this.eventColPositions[index] - 1) * width;
     const compactClass = width <= 10 || elHeight < 60  ? 'compact' : '';
     const elClasses = ['cal-event', compactClass];
 
