@@ -140,6 +140,9 @@ class EventsCalendar {
         this.setColTotals(index, eventMap, true);
         eventMap = [];
         this.eventColPositions[index] = eventMap.push(endTime);
+
+        // We need to set col totals again in case this is the last item in the array.
+        this.setColTotals(index, eventMap);
         return;
       }
 
@@ -166,7 +169,6 @@ class EventsCalendar {
    */
   setColTotals(index, eventMap, manualOverride = false) {
     if (index === this.sortedEvents.length - 1 || manualOverride) {
-      console.log(eventMap);
       const cols = eventMap.length;
       for (let idx = this.eventColTotalsOffset; idx <= index; idx++) {
         this.eventColTotals[idx] = cols;
