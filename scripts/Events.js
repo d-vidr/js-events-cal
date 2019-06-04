@@ -66,8 +66,6 @@ class EventsCalendar {
     this.setEventColumns();
     this.renderCalHourBlocks();
     this.renderEvents();
-    console.log(this.eventColPositions);
-    console.log(this.eventColTotals);
   }
 
   /**
@@ -122,22 +120,14 @@ class EventsCalendar {
      */
     let eventMap = [];
 
-    /**
-     * Current column number (zero based).
-     * @type {number}
-     */
-    let col = 0;
-
     this.sortedEvents.forEach((event, index) => {
       const startTime = event.starts_at;
       const endTime = event.starts_at + event.duration;
 
-      // First column
+      // If eventMap is empty, we need a first column.
       if (!eventMap.length) {
-        eventMap[col] = endTime;
-        this.eventColPositions[index] = col+1; // adj for zero based value.
+        this.eventColPositions[index] = eventMap.push(endTime);
         this.setColTotals(index, eventMap);
-        col++;
         return;
       }
 
@@ -146,31 +136,25 @@ class EventsCalendar {
 
       // If start time > = all end times up to this point, start a new row.
       if (startTime >= latestEndTime) {
-        // Set col totals first b/c we are about to start a new row
+        // Set col totals first as we need to capture length of eventMap prior to starting a new row
         this.setColTotals(index, eventMap, true);
-        col = 0;
         eventMap = [];
-        eventMap[col] = endTime;
-        this.eventColPositions[index] = col+1; // adj for zero based value.
-        col++;
+        this.eventColPositions[index] = eventMap.push(endTime);
         return;
       }
 
       // If start time < earliest end time, add a column.
       if (startTime < earliestEndTime) {
-        eventMap[col] = endTime;
-        this.eventColPositions[index] = col+1;
+        this.eventColPositions[index] = eventMap.push(endTime);
         this.setColTotals(index, eventMap);
-        col++;
         return;
       }
 
-      // Loop through eventMap to find lowest value < start time and assign to that column.
+      // Loop through eventMap to find lowest value (end time) < start time and assign event to that column.
       const position = eventMap.reduce((acc, endTime, colIndex) => endTime <= startTime ? colIndex : acc, 1);
       eventMap[position] = endTime;
-      this.eventColPositions[index] = position+1; // adj for zero based value.
+      this.eventColPositions[index] = position + 1; // adj for zero based index.
       this.setColTotals(index, eventMap);
-      col++;
     })
   }
 
@@ -182,6 +166,7 @@ class EventsCalendar {
    */
   setColTotals(index, eventMap, manualOverride = false) {
     if (index === this.sortedEvents.length - 1 || manualOverride) {
+      console.log(eventMap);
       const cols = eventMap.length;
       for (let idx = this.eventColTotalsOffset; idx <= index; idx++) {
         this.eventColTotals[idx] = cols;

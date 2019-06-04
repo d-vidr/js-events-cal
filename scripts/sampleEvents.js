@@ -20,7 +20,7 @@ const eventsArray = [
   {starts_at: 175, duration: 15, title: "3 Sync with John"},
   {starts_at: 460, duration: 150},
   {starts_at: 450, duration: 60},
-  {starts_at: 470, duration: 390, title: "4 Lunch with Karl", location: "TBA"},
+  {starts_at: 470, duration: 190, title: "4 Lunch with Karl", location: "TBA"},
   {starts_at: 75, duration: 60, title: "1 Sync with John"},
   {starts_at: 440, duration: 20},
   {starts_at: 460, duration: 120},
