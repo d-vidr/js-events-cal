@@ -74,6 +74,7 @@ html {
 .cal-event {
 	background-color: #dafdc1;
 	box-sizing: border-box;
+	border-bottom: 1px #49a821 solid;
 	border-left: 4px #49a821 solid;
 	display: flex;
 	flex-direction: column;
@@ -91,6 +92,30 @@ html {
 
 .cal-event-time {
 	display: block;
+}
+
+/* Compacted styles */
+.cal-event.compact .cal-event-details {
+	display: none;
+}
+
+.cal-event.compact:after {
+	content: '\2026';
+}
+
+.cal-event.compact:hover .cal-event-details {
+	display: block;
+	height: 60px;
+	background: #fff;
+	border: 1px #49a821 solid;
+	border-radius: 10px;
+	left: 50%;
+	padding: 6px 12px;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 100px;
+	z-index: 1;
 }
 
 @media screen and (min-device-width: 1200px) {

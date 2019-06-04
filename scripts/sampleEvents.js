@@ -21,6 +21,10 @@ const eventsArray = [
   {starts_at: 460, duration: 150},
   {starts_at: 450, duration: 60},
   {starts_at: 470, duration: 390, title: "4 Lunch with Karl", location: "TBA"},
+  {starts_at: 75, duration: 60, title: "1 Sync with John"},
+  {starts_at: 440, duration: 20},
+  {starts_at: 460, duration: 120},
+  {starts_at: 120, duration: 45, title: "3 Meeting with Ben", location: "Coffee Shop"},
 ];
 
 const eventsArray2 = [

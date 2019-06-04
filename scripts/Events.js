@@ -233,13 +233,15 @@ class EventsCalendar {
     const elTop = this.calcTimePixelPos(calEvent.starts_at);
     const width = 100 / this.eventColTotals[index];
     const leftPos = (this.simultaneousEventPositions[index]) * width;
+    const compactClass = width <= 10 || elHeight < 60  ? 'compact' : '';
+    const elClasses = ['cal-event', compactClass];
 
     const titleEl =
       calEvent.title
       ? `<span class="cal-event-title">${calEvent.title}</span>`
       : '';
     const locationEl =
-      calEvent.title
+      calEvent.location
       ? `<span class="cal-event-location">${calEvent.location}</span>`
       : '';
     const labelEl =
@@ -248,15 +250,17 @@ class EventsCalendar {
       : '';
 
     return `
-      <div class="cal-event"
+      <div class="${elClasses.join(' ')}"
           style="
             height: ${elHeight}px;
             top: ${elTop}px;
             width: ${width}%;
             left: ${leftPos}%;
             ">
-          ${labelEl}
-          <span class="cal-event-time">${this.getEventTime(calEvent)}</span>
+          <div class="cal-event-details">
+            ${labelEl}
+            <span class="cal-event-time">${this.getEventTime(calEvent)}</span>
+          </div>          
       </div>   
     `;
   };
