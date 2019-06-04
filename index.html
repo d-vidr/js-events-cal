@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>Events Calendar</title>
@@ -9,10 +9,21 @@
 		<div class="page-container">
 			<h1 class="events-heading">Events Calendar</h1>
 			<div id="calendar" class="calendar">
-				<p>From console, pass an array of events to renderEvents() to render app.  A default list of events is declared in the global scope and can be used like so:</p>
+				<p>From console, pass an array of events to renderEvents() to render app. A default list of events is declared
+					in the global scope and can be used like so:</p>
 				<code>renderEvents(eventsArray);</code>
 			</div>
 		</div>
+		<script src="scripts/sampleEvents.js" type="text/javascript"></script>
 		<script src="scripts/Events.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			/**
+			* Global wrapper function to render app.
+			* @param {Object[]} events Array of events objects.
+			*/
+			const renderEvents = function (events) {
+				new EventsCalendar(events);
+			};
+		</script>
 	</body>
 </html>

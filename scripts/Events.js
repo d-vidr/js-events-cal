@@ -1,13 +1,60 @@
-class Events {
+'use strict';
 
+/**
+ * Events calendar
+ */
+class EventsCalendar {
+  /**
+   * Create events calendar.
+   * @param {Object[]} calEvents Array of event objects.
+   */
   constructor(calEvents) {
+    /**
+     * Id of html node for rendering element.
+     * @type {string}
+     */
     this.appNodeId = 'calendar';
-    this.startTime = 9; // The start time.
-    this.hoursInCalDay = 12; // The number of hours to be shown in day.
-    this.hourInPixels = 60; // How many vertical pixels represent an hour.
-    this.sortedEvents = []; // Copy of events array that is passed in, then sorted by time.
-    this.simultaneousEventPositions = []; // Array of column positions, ie
-    this.eventColTotals = []; // Array of column totals for each event index. IE, 4 means 4 columns, one event would be 25%
+
+    /**
+     * The start time.
+     * @type {number}
+     */
+    this.startTime = 9;
+
+    /**
+     * Number of hours to be shown in day.
+     * @type {number}
+     */
+    this.hoursInCalDay = 12;
+
+    /**
+     * Number of vertical pixels that represent an hour.
+     * @type {number}
+     */
+    this.hourInPixels = 60;
+
+    /**
+     * Copy of events array sorted by time.
+     * @type {Array}
+     */
+    this.sortedEvents = [];
+
+    /**
+     * Array of column positions, zero based. Ie col 1 = 0. Used to calculate left position of event.
+     * @type {Array}
+     */
+    this.simultaneousEventPositions = [];
+
+    /**
+     * Total columns for each event. Used to calculate width of event.
+     * @type {Array}
+     */
+    this.eventColTotals = [];
+
+    /**
+     * Column totals offset. Used for storing offset while calculating eventColTotals.
+     * @type {number}
+     */
     this.eventColTotalsOffset = 0;
 
     if (! calEvents || ! Array.isArray(calEvents) || ! calEvents.length) {
@@ -24,7 +71,7 @@ class Events {
   /**
    * Sort events.
    *
-   * @param calEvents
+   * @param {Object[]} calEvents Array of event objects.
    */
   sortEvents(calEvents) {
     this.sortedEvents = calEvents.slice().sort(this.compareStartTime);
@@ -47,8 +94,28 @@ class Events {
     return 0;
   };
 
+  /**
+   * Set event positions (simultaneousEventPositions, eventColTotals)
+   */
   setPositions() {
+    /**
+     * Array of end times associated to a column (represented by zero based index). This is used to store previous event
+     * positions within columns.
+     *
+     * For example, `eventMap[0] = 120` equates to the first column containing an event with an end time of 120.
+     *
+     * This information is used to determine if our next event can be placed in the same column or requires a new one.
+     * If the current event's start time is later than all the end times in the array, we are essentially starting a
+     * new row.
+     *
+     * @type {Array}
+     */
     let eventMap = [];
+
+    /**
+     * Current column number (zero based).
+     * @type {number}
+     */
     let col = 0;
 
     this.sortedEvents.forEach((event, index) => {
@@ -97,6 +164,12 @@ class Events {
     })
   }
 
+  /**
+   * Set column totals.
+   * @param index
+   * @param eventMap
+   * @param manualOverride
+   */
   setColTotals(index, eventMap, manualOverride = false) {
     if (index === this.sortedEvents.length - 1 || manualOverride) {
       const cols = eventMap.length;
@@ -191,7 +264,7 @@ class Events {
   /**
    * Get event time span (from, to).
    *
-   * @param {Object.<number, string>} calEvent Events object.
+   * @param {Object} calEvent Events object.
    * @returns {string} Time span represented as hh:mm - hh:mm.  No minutes shown on the hour.
    */
   getEventTime(calEvent) {
@@ -230,44 +303,3 @@ class Events {
     return this.hourInPixels / 60 * minutes;
   };
 }
-
-/**
- * Global wrapper function to render app.
- *
- * @param {Object[].<number, string>} sortedEvents Array of events objects.
- */
-const renderEvents = function(events) {
-  new Events(events);
-};
-
-/**
- * Sample events array.
- */
-const eventsArray = [
-  {starts_at: 120, duration: 45, title: "1 Meeting with Ben", location: "Coffee Shop"},
-  {starts_at: 135, duration: 215, title: "2 Meeting with Ben", location: "Coffee Shop by the tracks"},
-  {starts_at: 240, duration: 60, title: "1 Lunch with Karl", location: "TBA"},
-  {starts_at: 75, duration: 60, title: "1 Sync with John"},
-  {starts_at: 360, duration: 25},
-  {starts_at: 460, duration: 120},
-  {starts_at: 120, duration: 45, title: "3 Meeting with Ben", location: "Coffee Shop"},
-  {starts_at: 135, duration: 215, title: "4 Another Meeting with Ben", location: "Coffee Shop by the tracks"},
-  {starts_at: 240, duration: 60, title: "2 Lunch with Karl", location: "TBA"},
-  {starts_at: 75, duration: 60, title: "2 Sync with John"},
-  {starts_at: 360, duration: 25},
-  {starts_at: 470, duration: 120},
-  {starts_at: 35, duration: 115, title: "5 Another Meeting with Ben", location: "Coffee Shop by the tracks"},
-  {starts_at: 40, duration: 390, title: "3 Lunch with Karl", location: "TBA"},
-  // {starts_at: 175, duration: 15, title: "3 Sync with John"},
-  {starts_at: 460, duration: 150},
-  // {starts_at: 450, duration: 60},
-  {starts_at: 470, duration: 390, title: "4 Lunch with Karl", location: "TBA"},
-// ];
-// const eventsArray = [
-  {starts_at: 75, duration: 60, title: "1 Sync with John"},
-  {starts_at: 440, duration: 20},
-  {starts_at: 460, duration: 120},
-  {starts_at: 120, duration: 45, title: "3 Meeting with Ben", location: "Coffee Shop"},
-];
-
-
