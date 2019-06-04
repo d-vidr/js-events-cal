@@ -125,7 +125,7 @@ class Events {
       : '';
     const locationEl =
       calEvent.title
-      ? `<span class="cal-event-location">calEvent.location</span>`
+      ? `<span class="cal-event-location">${calEvent.location}</span>`
       : '';
     const labelEl =
       titleEl || locationEl
