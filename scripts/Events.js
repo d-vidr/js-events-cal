@@ -186,9 +186,9 @@ class EventsCalendar {
     for (let h = this.startTime; h < endTime + 1; h++) {
       hours.push(h);
     }
-    const hourEls = hours.map((h) => {
+    const hourEls = hours.map((h, index) => {
       return `
-        <div class="cal-hour" style="height: ${this.hourInPixels}px;">
+        <div class="cal-hour${hours.length - 1 === index ? ' last' : ''}" style="height: ${this.hourInPixels}px;">
           <span class="cal-hour-label">${this.getCalHourLabel(h)}</span>
         </div>
       `;

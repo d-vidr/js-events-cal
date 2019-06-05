@@ -80,6 +80,7 @@ html {
 	flex-direction: column;
 	justify-content: center;
 	padding-left: 1em;
+	padding-right: .5em;
 	position: absolute;
 }
 
@@ -114,7 +115,7 @@ html {
 	position: absolute;
 	top: 50%;
 	transform: translate(-50%, -50%);
-	width: 100px;
+	width: 140px;
 	z-index: 1;
 }
 
@@ -127,12 +128,12 @@ html {
 		max-width: 800px;
 	}
 	.events-heading {
-		font-size: 24px;
+		font-size: 20px;
 	}
 	.cal-hour-label {
-		font-size: 12px;
+		font-size: 10px;
 	}
 	.cal-events {
-		font-size: 12px;
+		font-size: 10px;
 	}
 }
